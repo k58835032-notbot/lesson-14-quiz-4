@@ -1,0 +1,2249 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+
+<head>
+
+<meta charset="UTF-8" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>Hiragana → Romaji Word Quiz</title>
+
+<style>
+
+body {
+
+  font-family:"Hiragino Kaku Gothic Pro","Meiryo",sans-serif;
+
+  display:flex;
+
+  flex-direction:column;
+
+  align-items:center;
+
+  padding:40px;
+
+  color:#333;
+
+  text-align:center;
+
+}
+
+h1 {color:#b23b3b;font-size:2em;margin-bottom:20px;}
+
+button {
+
+  font-size:18px;
+
+  padding:12px 24px;
+
+  margin:10px;
+
+  border-radius:12px;
+
+  cursor:pointer;
+
+  transition:.3s;
+
+}
+
+#playSound {
+
+  background:white;
+
+  color:#b23b3b;
+
+  border:3px solid #b23b3b;
+
+}
+
+#playSound:hover {background:#ffe6f2;}
+
+.choice {
+
+  background:#b23b3b;
+
+  color:white;
+
+  border:2px solid #b23b3b;
+
+}
+
+.choice:hover {background:#ff4da6;}
+
+#choices {
+
+  display:flex;
+
+  flex-wrap:wrap;
+
+  justify-content:center;
+
+  max-width:720px;
+
+}
+
+#result {
+
+  font-size:20px;
+
+  margin-top:20px;
+
+  font-weight:bold;
+
+  white-space:pre-line;
+
+}
+
+#retry {
+
+  display:none;
+
+  background:#b23b3b;
+
+  color:white;
+
+  border:2px solid #b23b3b;
+
+}
+
+#retry:hover {background:#ff4da6;}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>🎧 Hiragana → Romaji Word Quiz</h1>
+
+<div id="timer" style="font-size:18px;margin-bottom:15px;color:#b23b3b;font-weight:bold;"></div>
+
+<button id="playSound">▶️ Play Sound</button>
+
+<div id="choices"></div>
+
+<div id="result"></div>
+
+<button id="retry">🔄 Retry Quiz</button>
+
+<script>
+
+/* ================= AUDIO BASE PATH ================= */
+
+const AUDIO_BASE =
+
+"https://raw.githubusercontent.com/k58835032-notbot/lesson-11-quiz-7/main/audio/";
+
+/* ================= WORD LIST ================= */
+
+/* You can safely add MORE words later */
+
+const words = [
+
+  
+
+  
+
+  // みゃ / みゅ / みょ + や-row words
+
+{
+
+    q:"tora",
+
+    audio:AUDIO_BASE + "tora.mp3",
+
+    options:["とら","とろ","とらあ","とらい"],
+
+    correct:"とら"
+
+},
+
+{
+
+    q:"rappa",
+
+    audio:AUDIO_BASE + "rappa.mp3",
+
+    options:["らっぱ","らっば","らっぱー","らっぴ"],
+
+    correct:"らっぱ"
+
+},
+
+{
+
+    q:"raku",
+
+    audio:AUDIO_BASE + "raku.mp3",
+
+    options:["らく","らき","らくう","らぐ"],
+
+    correct:"らく"
+
+},
+
+{
+
+    q:"rakugaki",
+
+    audio:AUDIO_BASE + "rakugaki.mp3",
+
+    options:["らくがき","らくがぎ","らくがけ","らくがきー"],
+
+    correct:"らくがき"
+
+},
+
+{
+
+    q:"rainen",
+
+    audio:AUDIO_BASE + "rainen.mp3",
+
+    options:["らいねん","らいねむ","らいねんー","らいねま"],
+
+    correct:"らいねん"
+
+},
+
+{
+
+    q:"raito",
+
+    audio:AUDIO_BASE + "raito.mp3",
+
+    options:["らいと","らいど","らいとー","らいとお"],
+
+    correct:"らいと"
+
+},
+
+{
+
+    q:"ringo",
+
+    audio:AUDIO_BASE + "ringo.mp3",
+
+    options:["りんご","りんごー","りんごう","りんごあ"],
+
+    correct:"りんご"
+
+},
+
+{
+
+    q:"risu",
+
+    audio:AUDIO_BASE + "risu.mp3",
+
+    options:["りす","りしゅ","りすー","りすお"],
+
+    correct:"りす"
+
+},
+
+{
+
+    q:"riyuu",
+
+    audio:AUDIO_BASE + "riyuu.mp3",
+
+    options:["りゆう","りゆー","りゆうー","りゆうお"],
+
+    correct:"りゆう"
+
+},
+
+{
+
+    q:"ryokou",
+
+    audio:AUDIO_BASE + "ryokou.mp3",
+
+    options:["りょこう","りょこー","りょこうう","りょこうお"],
+
+    correct:"りょこう"
+
+},
+
+{
+
+    q:"rikai",
+
+    audio:AUDIO_BASE + "rikai.mp3",
+
+    options:["りかい","りかう","りかーい","りかいー"],
+
+    correct:"りかい"
+
+},
+
+{
+
+    q:"ryou",
+
+    audio:AUDIO_BASE + "ryou.mp3",
+
+    options:["りょう","りょお","りょうー","りょうう"],
+
+    correct:"りょう"
+
+},
+
+{
+
+    q:"miryoku",
+
+    audio:AUDIO_BASE + "miryoku.mp3",
+
+    options:["みりょく","みりょくー","みりょぐ","みりょこ"],
+
+    correct:"みりょく"
+
+},
+
+{
+
+    q:"rusu",
+
+    audio:AUDIO_BASE + "rusu.mp3",
+
+    options:["るす","るすー","るすお","るしゅ"],
+
+    correct:"るす"
+
+},
+
+{
+
+    q:"shurui",
+
+    audio:AUDIO_BASE + "shurui.mp3",
+
+    options:["しゅるい","しゅるうい","しゅるいー","しゅるいお"],
+
+    correct:"しゅるい"
+
+},
+
+{
+
+    q:"rusuban",
+
+    audio:AUDIO_BASE + "rusuban.mp3",
+
+    options:["るすばん","るすばーん","るすばんー","ろすばん"],
+
+    correct:"るすばん"
+
+},
+
+{
+
+    q:"rurou",
+
+    audio:AUDIO_BASE + "rurou.mp3",
+
+    options:["るろう","るろーう","るろうー","るろおう"],
+
+    correct:"るろう"
+
+},
+
+{
+
+    q:"rei",
+
+    audio:AUDIO_BASE + "rei.mp3",
+
+    options:["れい","れえい","れいー","れいお"],
+
+    correct:"れい"
+
+},
+
+{
+
+    q:"remon",
+
+    audio:AUDIO_BASE + "remon.mp3",
+
+    options:["れもん","れもーん","れもんー","れもんお"],
+
+    correct:"れもん"
+
+},
+
+{
+
+    q:"rekishi",
+
+    audio:AUDIO_BASE + "rekishi.mp3",
+
+    options:["れきし","れきしー","れきしお","れきしゅ"],
+
+    correct:"れきし"
+
+},
+
+{
+
+    q:"reizoko",
+
+    audio:AUDIO_BASE + "reizoko.mp3",
+
+    options:["れいぞうこ","れいぞうこー","れいぞうこお","れいぞうご"],
+
+    correct:"れいぞうこ"
+
+},
+
+{
+
+    q:"renshuu",
+
+    audio:AUDIO_BASE + "renshuu.mp3",
+
+    options:["れんしゅう","れんしゅーう","れんしゅうー","れんしゅ"],
+
+    correct:"れんしゅう"
+
+},
+
+{
+
+    q:"gyouretsu",
+
+    audio:AUDIO_BASE + "gyouretsu.mp3",
+
+    options:["ぎょうれつ","ぎょうれつー","ぎょうれっつ","ぎょーれつ"],
+
+    correct:"ぎょうれつ"
+
+},
+
+{
+
+    q:"roku",
+
+    audio:AUDIO_BASE + "roku.mp3",
+
+    options:["ろく","ろくー","ろこく","ろくお"],
+
+    correct:"ろく"
+
+},
+
+{
+
+    q:"roba",
+
+    audio:AUDIO_BASE + "roba.mp3",
+
+    options:["ろば","ろばー","ろばお","ろぱ"],
+
+    correct:"ろば"
+
+},
+
+{
+
+    q:"rousoku",
+
+    audio:AUDIO_BASE + "rousoku.mp3",
+
+    options:["ろうそく","ろうそくー","ろうそくお","ろうそくう"],
+
+    correct:"ろうそく"
+
+},
+
+{
+
+    q:"rouka",
+
+    audio:AUDIO_BASE + "rouka.mp3",
+
+    options:["ろうか","ろうかー","ろうかお","ろうかう"],
+
+    correct:"ろうか"
+
+},
+
+{
+
+    q:"rokuon",
+
+    audio:AUDIO_BASE + "rokuon.mp3",
+
+    options:["ろくおん","ろくおーん","ろくおんー","ろくおんお"],
+
+    correct:"ろくおん"
+
+},
+
+{
+
+    q:"roji",
+
+    audio:AUDIO_BASE + "roji.mp3",
+
+    options:["ろじ","ろじー","ろじお","ろじゅ"],
+
+    correct:"ろじ"
+
+},
+
+{
+
+    q:"sakura",
+
+    audio:AUDIO_BASE + "sakura.mp3",
+
+    options:["さくら","さぐら","さくらー","さくらお"],
+
+    correct:"さくら"
+
+},
+
+{
+
+    q:"sora",
+
+    audio:AUDIO_BASE + "sora.mp3",
+
+    options:["そら","そらー","そろあ","そらお"],
+
+    correct:"そら"
+
+},
+
+{
+
+    q:"kurai",
+
+    audio:AUDIO_BASE + "kurai.mp3",
+
+    options:["くらい","くらいー","くらいお","くらいあ"],
+
+    correct:"くらい"
+
+},
+
+{
+
+    q:"akarui",
+
+    audio:AUDIO_BASE + "akarui.mp3",
+
+    options:["あかるい","あかるいー","あかるいお","あかるうい"],
+
+    correct:"あかるい"
+
+},
+
+{
+
+    q:"arashi",
+
+    audio:AUDIO_BASE + "arashi.mp3",
+
+    options:["あらし","あらしー","あらしお","あらしう"],
+
+    correct:"あらし"
+
+},
+
+{
+
+    q:"karate",
+
+    audio:AUDIO_BASE + "karate.mp3",
+
+    options:["からて","からてー","からてお","からてう"],
+
+    correct:"からて"
+
+},
+
+{
+
+    q:"mura",
+
+    audio:AUDIO_BASE + "mura.mp3",
+
+    options:["むら","むらー","むろ","むらお"],
+
+    correct:"むら"
+
+},
+
+{
+
+    q:"tera",
+
+    audio:AUDIO_BASE + "tera.mp3",
+
+    options:["てら","てらー","てろ","てらお"],
+
+    correct:"てら"
+
+},
+
+{
+
+    q:"hara",
+
+    audio:AUDIO_BASE + "hara.mp3",
+
+    options:["はら","はらー","はろ","はらお"],
+
+    correct:"はら"
+
+},
+
+{
+
+    q:"kare",
+
+    audio:AUDIO_BASE + "kare.mp3",
+
+    options:["かれ","かれー","かろ","かれお"],
+
+    correct:"かれ"
+
+},
+
+{
+
+    q:"kutsurogeru",
+
+    audio:AUDIO_BASE + "kutsurogeru.mp3",
+
+    options:["くつろげる","くつろげるー","くつろげるお","くつろげるう"],
+
+    correct:"くつろげる"
+
+},
+
+{
+
+    q:"ronri",
+
+    audio:AUDIO_BASE + "ronri.mp3",
+
+    options:["ろんり","ろんりー","ろんりお","ろんりう"],
+
+    correct:"ろんり"
+
+},
+
+{
+
+    q:"saru",
+
+    audio:AUDIO_BASE + "saru.mp3",
+
+    options:["さる","さるー","さろ","さるお"],
+
+    correct:"さる"
+
+},
+
+{
+
+    q:"matsuri",
+
+    audio:AUDIO_BASE + "matsuri.mp3",
+
+    options:["まつり","まつりー","まつりお","まつるい"],
+
+    correct:"まつり"
+
+},
+
+{
+
+    q:"rimokon",
+
+    audio:AUDIO_BASE + "rimokon.mp3",
+
+    options:["りもこん","りもこんー","りもこんお","りもこむ"],
+
+    correct:"りもこん"
+
+},
+
+{
+
+    q:"sara",
+
+    audio:AUDIO_BASE + "sara.mp3",
+
+    options:["さら","さらー","さらお","さらあ"],
+
+    correct:"さら"
+
+},
+
+{
+
+    q:"hiragana",
+
+    audio:AUDIO_BASE + "hiragana.mp3",
+
+    options:["ひらがな","ひらがなー","ひらがなお","ひらがなう"],
+
+    correct:"ひらがな"
+
+},
+
+{
+
+    q:"naoru",
+
+    audio:AUDIO_BASE + "naoru.mp3",
+
+    options:["なおる","なおるー","なおろ","なおうる"],
+
+    correct:"なおる"
+
+},
+
+{
+
+    q:"obasan",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-10-table/main/obasan.mp3",
+
+    options:["おばさん","おばさーん","おばさ","おばさんお"],
+
+    correct:"おばさん"
+
+},
+
+{
+
+    q:"obaasan",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-10-table/main/obaasan.mp3",
+
+    options:["おばあさん","おばあさーん","おばあさ","おばあさんお"],
+
+    correct:"おばあさん"
+
+},
+
+{
+
+    q:"ojisan",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-10-table/main/ojisan.mp3",
+
+    options:["おじさん","おじさーん","おじさ","おじさんお"],
+
+    correct:"おじさん"
+
+},
+
+{
+
+    q:"ojiisan",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-10-table/main/ojiisan.mp3",
+
+    options:["おじいさん","おじいさーん","おじいさ","おじいさんお"],
+
+    correct:"おじいさん"
+
+},
+
+{
+
+    q:"onisan",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-10-table/main/onisan.mp3",
+
+    options:["おにさん","おにさーん","おにさ","おにさんお"],
+
+    correct:"おにさん"
+
+},
+
+{
+
+    q:"oniisan",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-10-table/main/oniisan.mp3",
+
+    options:["おにいさん","おにいさーん","おにいさ","おにいさんお"],
+
+    correct:"おにいさん"
+
+},
+
+{
+
+    q:"kasan",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-10-table/main/kasan.mp3",
+
+    options:["かさん","かさーん","かさ","かさんお"],
+
+    correct:"かさん"
+
+},
+
+{
+
+    q:"kaasan",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-10-table/main/kaasan.mp3",
+
+    options:["かあさん","かあさーん","かあさ","かあさんお"],
+
+    correct:"かあさん"
+
+},
+
+{
+
+    q:"yasai",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-10-table/main/yasai.mp3",
+
+    options:["やさい","やさーい","やさえ","やさいお"],
+
+    correct:"やさい"
+
+},
+
+{
+
+    q:"yasashii",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-10-table/main/yasashii.mp3",
+
+    options:["やさしい","やさしー","やさし","やさしいお"],
+
+    correct:"やさしい"
+
+},
+
+{
+
+    q:"chiisai",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-10-table/main/chiisai.mp3",
+
+    options:["ちいさい","ちいさーい","ちいさ","ちいさいお"],
+
+    correct:"ちいさい"
+
+},
+
+{
+
+    q:"hiku",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-10-table/main/hiku.mp3",
+
+    options:["ひく","ひくー","ひくお","ひくう"],
+
+    correct:"ひく"
+
+},
+
+{
+
+    q:"hiiku",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-10-table/main/hiiku.mp3",
+
+    options:["ひいく","ひいくー","ひいくお","ひいくう"],
+
+    correct:"ひいく"
+
+},
+
+{
+
+    q:"hiki",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-10-table/main/hiki.mp3",
+
+    options:["ひき","ひきー","ひきお","ひきう"],
+
+    correct:"ひき"
+
+},
+
+{
+
+    q:"hiiki",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-10-table/main/hiiki.mp3",
+
+    options:["ひいき","ひいきー","ひいきお","ひいきう"],
+
+    correct:"ひいき"
+
+},
+
+{
+
+    q:"midasu",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-10-table/main/midasu.mp3",
+
+    options:["みだす","みだすー","みだすお","みだすう"],
+
+    correct:"みだす"
+
+},
+
+{
+
+    q:"miidasu",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-10-table/main/miidasu.mp3",
+
+    options:["みいだす","みいだすー","みいだすお","みいだすう"],
+
+    correct:"みいだす"
+
+},
+
+{
+
+    q:"kite",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-10-table/main/kite_kudasai.mp3",
+
+    options:["きてください","きてくださーい","きてくださいお","きてくださいー"],
+
+    correct:"きてください"
+
+},
+
+{
+
+    q:"kiite",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-10-table/main/kiite_kudasai.mp3",
+
+    options:["きいてください","きいてくださーい","きいてくださいお","きいてくださいー"],
+
+    correct:"きいてください"
+
+},
+
+{
+
+    q:"koko",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-10-table/main/koko.mp3",
+
+    options:["ここ","ここー","ここお","ここ"],
+
+    correct:"ここ"
+
+},
+
+{
+
+    q:"kookoo",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-10-table/main/kookoo.mp3",
+
+    options:["こうこう","こうこーう","こうこうお","こうごう"],
+
+    correct:"こうこう"
+
+},
+
+{
+
+    q:"yume",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-10-table/main/yume.mp3",
+
+    options:["ゆめ","ゆめー","ゆめお","ゆめう"],
+
+    correct:"ゆめ"
+
+},
+
+{
+
+    q:"yuumei",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-10-table/main/yuumei.mp3",
+
+    options:["ゆうめい","ゆうめーい","ゆうめいお","ゆうめいう"],
+
+    correct:"ゆうめい"
+
+},
+
+{
+
+    q:"yuki",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-10-table/main/yuki.mp3",
+
+    options:["ゆき","ゆきー","ゆきお","ゆきう"],
+
+    correct:"ゆき"
+
+},
+
+{
+
+    q:"yuuki",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-10-table/main/yuuki.mp3",
+
+    options:["ゆうき","ゆうきー","ゆうきお","ゆうきう"],
+
+    correct:"ゆうき"
+
+},
+
+  {
+
+  q:"miyuki",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/miyuki.mp3",
+
+  options:["みゆき","みよき","みゅき","みゆぎ"],
+
+  correct:"みゆき"
+
+},
+
+{
+
+  q:"miyoshi",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/miyoshi.mp3",
+
+  options:["みよし","みよじ","みゆし","みやし"],
+
+  correct:"みよし"
+
+},
+
+{
+
+  q:"yama",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yama.mp3",
+
+  options:["やま","やみ","ゆま","よま"],
+
+  correct:"やま"
+
+},
+
+{
+
+  q:"yamada",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yamada.mp3",
+
+  options:["やまだ","やまど","やまた","やまな"],
+
+  correct:"やまだ"
+
+},
+
+{
+
+  q:"yane",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yane.mp3",
+
+  options:["やね","やぬ","やめ","やの"],
+
+  correct:"やね"
+
+},
+
+{
+
+  q:"yado",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yado.mp3",
+
+  options:["やど","やと","やの","やほ"],
+
+  correct:"やど"
+
+},
+
+{
+
+  q:"yoko",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yoko.mp3",
+
+  options:["よこ","よご","よこー","よほ"],
+
+  correct:"よこ"
+
+},
+
+{
+
+  q:"yomu",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yomu.mp3",
+
+  options:["よむ","よみ","よぶ","よも"],
+
+  correct:"よむ"
+
+},
+
+{
+
+  q:"yobu",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yobu.mp3",
+
+  options:["よぶ","よぷ","よぼ","よむ"],
+
+  correct:"よぶ"
+
+},
+
+{
+
+  q:"yameru",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yameru.mp3",
+
+  options:["やめる","やめす","やめろ","やめた"],
+
+  correct:"やめる"
+
+},
+
+{
+
+  q:"yaseru",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yaseru.mp3",
+
+  options:["やせる","やせす","やぜる","やせた"],
+
+  correct:"やせる"
+
+},
+
+{
+
+  q:"yakimasu",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yakimasu.mp3",
+
+  options:["やきます","やきまつ","やきまし","やきますー"],
+
+  correct:"やきます"
+
+},
+
+{
+
+  q:"yubi",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yubi.mp3",
+
+  options:["ゆび","ゆぴ","よび","ゆみ"],
+
+  correct:"ゆび"
+
+},
+
+{
+
+  q:"yubisaki",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yubisaki.mp3",
+
+  options:["ゆびさき","ゆびさぎ","ゆぴさき","ゆみさき"],
+
+  correct:"ゆびさき"
+
+},
+
+{
+
+  q:"yubisasu",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yubisasu.mp3",
+
+  options:["ゆびさす","ゆびさし","ゆびさせ","ゆびさすー"],
+
+  correct:"ゆびさす"
+
+},
+
+{
+
+  q:"yasumi",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yasumi.mp3",
+
+  options:["やすみ","やすに","やずみ","やすめ"],
+
+  correct:"やすみ"
+
+},
+
+{
+
+  q:"yasai",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yasai.mp3",
+
+  options:["やさい","やざい","やさえ","やさし"],
+
+  correct:"やさい"
+
+},
+
+{
+
+  q:"yasashii",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yasashii.mp3",
+
+  options:["やさしい","やさし","やざしい","やさしえ"],
+
+  correct:"やさしい"
+
+},
+
+{
+
+  q:"yasusa",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yasusa.mp3",
+
+  options:["やすさ","やすざ","やすた","やずさ"],
+
+  correct:"やすさ"
+
+},
+
+{
+
+  q:"yamamoto",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yamamoto.mp3",
+
+  options:["やまもと","やまもど","やまもこ","やままと"],
+
+  correct:"やまもと"
+
+},
+
+{
+
+  q:"yamanashiken",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yamanashiken.mp3",
+
+  options:["やまなしけん","やまなしかん","やまなしてん","やまなしげん"],
+
+  correct:"やまなしけん"
+
+},
+
+{
+
+  q:"yakiniku",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yakiniku.mp3",
+
+  options:["やきにく","やきにこ","やきみく","やきにけ"],
+
+  correct:"やきにく"
+
+},
+
+{
+
+  q:"yakiimo",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yakiimo.mp3",
+
+  options:["やきいも","やきいま","やきいめ","やきも"],
+
+  correct:"やきいも"
+
+},
+
+{
+
+  q:"yume",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yume.mp3",
+
+  options:["ゆめ","ゆみ","よめ","ゆも"],
+
+  correct:"ゆめ"
+
+},
+
+{
+
+  q:"yuki",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yuki.mp3",
+
+  options:["ゆき","ゆぎ","よき","ゆに"],
+
+  correct:"ゆき"
+
+},
+
+ {
+
+    q:"machi",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-8-quiz-4/main/audio/machi.mp3",
+
+    options:["まち","まし","まじ","まき"],
+
+    correct:"まち"
+
+  },
+
+  {
+
+    q:"mado",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-8-quiz-4/main/audio/mado.mp3",
+
+    options:["まど","まと","まこ","まどー"],
+
+    correct:"まど"
+
+  },
+
+  {
+
+    q:"mame",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-8-quiz-4/main/audio/mame.mp3",
+
+    options:["まめ","まね","まみ","まへ"],
+
+    correct:"まめ"
+
+  },
+
+  {
+
+    q:"mushi",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-8-quiz-4/main/audio/mushi.mp3",
+
+    options:["むし","むじ","むち","むひ"],
+
+    correct:"むし"
+
+  },
+
+  {
+
+    q:"mizu",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-8-quiz-4/main/audio/mizu.mp3",
+
+    options:["みず","みつ","みづ","みす"],
+
+    correct:"みず"
+
+  },
+
+  {
+
+    q:"mimi",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-8-quiz-4/main/audio/mimi.mp3",
+
+    options:["みみ","みに","みめ","みび"],
+
+    correct:"みみ"
+
+  },
+
+  {
+
+    q:"megane",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-8-quiz-4/main/audio/megane.mp3",
+
+    options:["めがね","めかね","めがに","めがねー"],
+
+    correct:"めがね"
+
+  },
+
+  {
+
+    q:"momiji",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-8-quiz-4/main/audio/momiji.mp3",
+
+    options:["もみじ","もみに","もみち","もひじ"],
+
+    correct:"もみじ"
+
+  },
+
+  {
+
+    q:"mikan",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-8-quiz-4/main/audio/mikan.mp3",
+
+    options:["みかん","みこん","みがん","みか"],
+
+    correct:"みかん"
+
+  },
+
+  {
+
+    q:"mikanbako",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-8-quiz-4/main/audio/mikanbako.mp3",
+
+    options:["みかんばこ","みかんはこ","みかんばご","みかばこ"],
+
+    correct:"みかんばこ"
+
+  },
+
+  {
+
+    q:"minna",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-8-quiz-4/main/audio/minna.mp3",
+
+    options:["みんな","みな","みんあ","みんら"],
+
+    correct:"みんな"
+
+  },
+
+  {
+
+    q:"musuko",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-8-quiz-4/main/audio/musuko.mp3",
+
+    options:["むすこ","むしこ","むそこ","むすご"],
+
+    correct:"むすこ"
+
+  },
+
+  {
+
+    q:"manabu",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-8-quiz-4/main/audio/manabu.mp3",
+
+    options:["まなぶ","まなん","まねぶ","まぬぶ"],
+
+    correct:"まなぶ"
+
+  },
+
+  {
+
+    q:"matsu",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-8-quiz-4/main/audio/matsu.mp3",
+
+    options:["まつ","まづ","まち","もつ"],
+
+    correct:"まつ"
+
+  },
+
+  {
+
+    q:"motsu",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-8-quiz-4/main/audio/motsu.mp3",
+
+    options:["もつ","まつ","もづ","もす"],
+
+    correct:"もつ"
+
+  },
+
+  
+
+  {
+
+  q:"yutaka",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yutaka.mp3",
+
+  options:["ゆたか","ゆだか","ゆたが","ゆなか"],
+
+  correct:"ゆたか"
+
+},
+
+{
+
+  q:"yukata",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yukata.mp3",
+
+  options:["ゆかた","ゆがた","ゆかだ","ゆなだ"],
+
+  correct:"ゆかた"
+
+},
+
+{
+
+  q:"yunomi",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yunomi.mp3",
+
+  options:["ゆのみ","ゆのび","ゆのめ","ゆのみー"],
+
+  correct:"ゆのみ"
+
+},
+
+{
+
+  q:"yukimi",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yukimi.mp3",
+
+  options:["ゆきみ","ゆぎみ","ゆきび","ゆきに"],
+
+  correct:"ゆきみ"
+
+},
+
+{
+
+  q:"yon",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/yon.mp3",
+
+  options:["よん","よね","よむ","よ"],
+
+  correct:"よん"
+
+},
+
+  {
+
+    q:"hikui",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-7-listening-2/main/audio/hikui.mp3",
+
+    options:["ひくい","ひく","ひろい","ひかい"],
+
+    correct:"ひくい"
+
+  },
+
+  {
+
+    q:"hiku",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-7-listening-2/main/audio/hiku.mp3",
+
+    options:["ひく","ひくい","ひらく","ひこ"],
+
+    correct:"ひく"
+
+  },
+
+  {
+
+    q:"haha",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-7-listening-2/main/audio/haha.mp3",
+
+    options:["はは","はな","はば","はほ"],
+
+    correct:"はは"
+
+  },
+
+  {
+
+    q:"hana",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-7-listening-2/main/audio/hana.mp3",
+
+    options:["はな","はは","はね","はなす"],
+
+    correct:"はな"
+
+  },
+
+ 
+
+  {
+
+    q:"hanasu",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-7-listening-2/main/audio/hanasu.mp3",
+
+    options:["はなす","はなし","はな","はなさ"],
+
+    correct:"はなす"
+
+  },
+
+  {
+
+    q:"haiku",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-7-listening-2/main/audio/haiku.mp3",
+
+    options:["はいく","はく","はいう","はいこ"],
+
+    correct:"はいく"
+
+  },
+
+  {
+
+    q:"hito",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-7-listening-2/main/audio/hito.mp3",
+
+    options:["ひと","ひつ","ひこ","ひど"],
+
+    correct:"ひと"
+
+  },
+
+  /* ば */
+
+  {
+
+    q:"baka",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-7-listening-2/main/audio/baka.mp3",
+
+    options:["ばか","ぱか","はか","ばが"],
+
+    correct:"ばか"
+
+  },
+
+  {
+
+    q:"buta",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-7-listening-2/main/audio/buta.mp3",
+
+    options:["ぶた","ふた","ぷた","ぶだ"],
+
+    correct:"ぶた"
+
+  },
+
+  {
+
+    q:"bubun",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-7-listening-2/main/audio/bubun.mp3",
+
+    options:["ぶぶん","ふぶん","ぶぷん","ぶぶ"],
+
+    correct:"ぶぶん"
+
+  },
+
+  {
+
+    q:"bushi",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-7-listening-2/main/audio/bushi.mp3",
+
+    options:["ぶし","ふし","ぶじ","ぶち"],
+
+    correct:"ぶし"
+
+  },
+
+  /* ぱ */
+
+  {
+
+    q:"pan",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-7-listening-2/main/audio/pan.mp3",
+
+    options:["ぱん","はん","ばん","ぱんー"],
+
+    correct:"ぱん"
+
+  },
+
+  {
+
+    q:"pinku",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-7-listening-2/main/audio/pinku.mp3",
+
+    options:["ぴんく","びんく","ひんく","ぴんぐ"],
+
+    correct:"ぴんく"
+
+  },
+
+  /* ほ / ぼ */
+
+  {
+
+    q:"hoshii",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-7-listening-2/main/audio/hoshii.mp3",
+
+    options:["ほしい","ほし","ぼしい","ほじい"],
+
+    correct:"ほしい"
+
+  },
+
+  {
+
+    q:"boku",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-7-listening-2/main/audio/boku.mp3",
+
+    options:["ぼく","ほく","ぼぐ","ぽく"],
+
+    correct:"ぼく"
+
+  },
+
+  {
+
+  q:"kyoka",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/kyoka.mp3",
+
+  options:["きょか","きよか","きょうか","きゃか"],
+
+  correct:"きょか"
+
+},
+
+{
+
+  q:"chokin",
+
+  audio:"https://raw.githubusercontent.com/k58835032-notbot/lesson-9-quiz-3/main/chokin.mp3",
+
+  options:["ちょきん","ちよきん","ちょぎん","ちょき"],
+
+  correct:"ちょきん"
+
+},
+
+{
+
+    q:"konnan",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/hiragana-lesson-5-listening-2/main/こんなん.mp3",
+
+    options:["こなん","こんなん","こっなん","こーなん"],
+
+    correct:"こんなん"
+
+  },
+
+  {
+
+    q:"bonsai",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/hiragana-lesson-5-listening-2/main/ぼんさい.mp3",
+
+    options:["ぼんさい","ぼなさい","ぼっさい","ぼぬさい"],
+
+    correct:"ぼんさい"
+
+  },
+
+  {
+
+    q:"denki",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/hiragana-lesson-5-listening-2/main/でんき.mp3",
+
+    options:["でんき","でんし","でっき","でぬき"],
+
+    correct:"でんき"
+
+  },
+
+  {
+
+    q:"konzatsu",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/hiragana-lesson-5-listening-2/main/こんざつ.mp3",
+
+    options:["こんざつ","こっさつ","ごんざつ","こぬさつ"],
+
+    correct:"こんざつ"
+
+  },
+
+  {
+
+    q:"kankoku",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/hiragana-lesson-5-listening-2/main/かんこく.mp3",
+
+    options:["かんこく","かっこく","がっこく","かぐこく"],
+
+    correct:"かんこく"
+
+  },
+
+  {
+
+    q:"unten",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/hiragana-lesson-5-listening-2/main/うんてん.mp3",
+
+    options:["うんてん","うんでん","こんてん","こってん"],
+
+    correct:"うんてん"
+
+  },
+
+  {
+
+    q:"sannen",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/hiragana-lesson-5-listening-2/main/さんねん.mp3",
+
+    options:["さんねん","さねん","さっねん","さんね"],
+
+    correct:"さんねん"
+
+  },
+
+  {
+
+    q:"kondo",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/hiragana-lesson-5-listening-2/main/こんど.mp3",
+
+    options:["こんど","こんと","こっど","こぬど"],
+
+    correct:"こんど"
+
+  },
+
+  {
+
+    q:"sensei",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/hiragana-lesson-5-listening-2/main/せんせい.mp3",
+
+    options:["せんせい","せんさい","せいせい","せっせい"],
+
+    correct:"せんせい"
+
+  },
+
+  {
+
+    q:"genki",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/hiragana-lesson-5-listening-2/main/げんき.mp3",
+
+    options:["げんき","げんぎ","げっき","けっき"],
+
+    correct:"げんき"
+
+  },
+
+  {
+
+    q:"sentaku",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/hiragana-lesson-5-listening-2/main/せんたく.mp3",
+
+    options:["せんたく","せったく","せんだく","せんたけ"],
+
+    correct:"せんたく"
+
+  },
+
+  {
+
+    q:"okane",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/hiragana-lesson-5-listening-2/main/おかね.mp3",
+
+    options:["おかね","おかん","おがね","おがん"],
+
+    correct:"おかね"
+
+  },
+
+  {
+
+    q:"zasshi",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/hiragana-lesson-5-listening-2/main/ざっし.mp3",
+
+    options:["ざっし","さんし","ざんし","なんし"],
+
+    correct:"ざっし"
+
+  },
+
+  {
+
+    q:"shinsetsu_na",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/hiragana-lesson-5-listening-2/main/しんせつな.mp3",
+
+    options:["しんせつな","しっせつな","しんせいた","しっせいだ"],
+
+    correct:"しんせつな"
+
+  },
+
+  {
+
+    q:"ichi_en",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/hiragana-lesson-5-listening-2/main/いちえん.mp3",
+
+    options:["いちえん","いちねん","いせん","いしえん"],
+
+    correct:"いちえん"
+
+  },
+
+  {
+
+    q:"kokusai",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/hiragana-lesson-5-listening-2/main/こくさい.mp3",
+
+    options:["こくさい","ごくさい","こくさん","ごくさん"],
+
+    correct:"こくさい"
+
+  },
+
+  {
+
+    q:"sonna_koto",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/hiragana-lesson-5-listening-2/main/そんなこと.mp3",
+
+    options:["そんなこと","そっなこと","こんなこと","そんなこて"],
+
+    correct:"そんなこと"
+
+  },
+
+  {
+
+    q:"shinken",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/hiragana-lesson-5-listening-2/main/しんけん.mp3",
+
+    options:["しんけん","しんけい","しっけん","しっけい"],
+
+    correct:"しんけん"
+
+  },
+
+  {
+
+    q:"gakki",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/hiragana-lesson-5-listening-2/main/がっき.mp3",
+
+    options:["がっき","がき","かっき","がっぎ"],
+
+    correct:"がっき"
+
+  },
+
+  {
+
+    q:"kitte_kudasai",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/hiragana-lesson-5-listening-2/main/きってください.mp3",
+
+    options:["きってください","きてください","きいてください","きっでください"],
+
+    correct:"きってください"
+
+  },
+
+  {
+
+    q:"kiite_kudasai",
+
+    audio:"https://raw.githubusercontent.com/k58835032-notbot/hiragana-lesson-5-listening-2/main/きいてください.mp3",
+
+    options:["きいてください","きてください","きってください","きぃてください"],
+
+    correct:"きいてください"
+
+  }
+
+  
+
+];
+
+let shuffledWords = [];
+
+let currentIndex = 0;
+
+let audio = null;
+
+let timeLeft = 7;
+
+let timerInterval = null;
+  
+let gameStarted = false;
+
+
+const timerDiv = document.getElementById("timer");
+
+const TOTAL_QUESTIONS = 25;
+
+const playSoundBtn = document.getElementById("playSound");
+
+const choicesDiv = document.getElementById("choices");
+
+const resultDiv = document.getElementById("result");
+  
+resultDiv.textContent = "Click ▶️ Play Sound to start the quiz 🎧";
+
+const retryBtn = document.getElementById("retry");
+
+// Shuffle function (Fisher-Yates)
+
+function shuffle(array) {
+
+  for (let i = array.length - 1; i > 0; i--) {
+
+    const j = Math.floor(Math.random() * (i + 1));
+
+    [array[i], array[j]] = [array[j], array[i]];
+
+  }
+
+  return array;
+
+}
+
+  
+
+function shuffleOptions(question) {
+
+  const options = [...question.options]; // copy options
+
+  for (let i = options.length - 1; i > 0; i--) {
+
+    const j = Math.floor(Math.random() * (i + 1));
+
+    [options[i], options[j]] = [options[j], options[i]]; // swap
+
+  }
+
+  return { ...question, options };
+
+}
+
+function startQuiz() {
+
+  currentIndex = 0;
+
+  shuffledWords = shuffle([...words]).slice(0, TOTAL_QUESTIONS);
+
+  playSoundBtn.style.display = "inline-block";
+
+  retryBtn.style.display = "none";
+
+  showQuestion();
+
+}
+
+function startTimer(correctAnswer) {
+
+  clearInterval(timerInterval);
+
+  timeLeft = 7;
+
+  updateTimer();
+
+  timerInterval = setInterval(() => {
+
+    timeLeft--;
+
+    updateTimer();
+
+    if (timeLeft <= 0) {
+
+      clearInterval(timerInterval);
+
+      timeUp(correctAnswer);
+
+    }
+
+  }, 1000);
+
+}
+
+function updateTimer() {
+
+  timerDiv.textContent = `⏱ Time left: ${timeLeft}s`;
+
+}
+
+function timeUp(correct) {
+
+  resultDiv.textContent += `\n⏰ Time’s up! Correct answer: ${correct}`;
+
+  currentIndex++;
+
+  setTimeout(showQuestion, 1500);
+
+}
+
+function showQuestion() {
+
+  if (currentIndex >= shuffledWords.length) {
+
+  clearInterval(timerInterval);
+
+  choicesDiv.innerHTML = "";
+
+  resultDiv.textContent =
+
+    "🎉 Quiz finished!\nGreat job! Keep going!";
+
+  playSoundBtn.style.display = "none";
+
+  retryBtn.style.display = "inline-block";
+
+  return;
+
+}
+
+    
+
+  let word = shuffledWords[currentIndex];
+
+  word = shuffleOptions(word); // shuffle options
+
+  audio = new Audio(word.audio);
+
+  resultDiv.textContent = `Question ${currentIndex + 1} of ${shuffledWords.length}`;
+
+  showChoices(word.options, word.correct);
+
+startTimer(word.correct);
+
+}
+
+function showChoices(options, correct) {
+
+  choicesDiv.innerHTML = "";
+
+  options.forEach(option => {
+
+    const btn = document.createElement("button");
+
+    btn.className = "choice";
+
+    btn.textContent = option;
+
+    btn.onclick = () => checkAnswer(option, correct);
+
+    choicesDiv.appendChild(btn);
+
+  });
+
+}
+
+function checkAnswer(selected, correct) {
+
+  clearInterval(timerInterval);
+
+  if (selected === correct) {
+
+    resultDiv.textContent += "\n✅ Correct!";
+
+  } else {
+
+    resultDiv.textContent += `\n❌ Wrong! Correct answer: ${correct}`;
+
+  }
+
+  currentIndex++;
+
+  setTimeout(showQuestion, 1500);
+
+}
+
+playSoundBtn.addEventListener("click", () => {
+  if (!gameStarted) {
+    gameStarted = true;
+    startQuiz();                 // initialize quiz
+    setTimeout(() => {
+      if (audio) audio.play();   // play first audio
+    }, 100);
+  } else {
+    if (audio) {
+      audio.currentTime = 0;
+      audio.play();              // replay sound
+    }
+  }
+});
+
+retryBtn.addEventListener("click", () => {
+  gameStarted = false;
+  resultDiv.textContent = "Click ▶️ Play Sound to start the quiz 🎧";
+  playSoundBtn.style.display = "inline-block";
+  retryBtn.style.display = "none";
+});
+
+
+// Start the quiz on page load
+
+
+
+</script>
+
+</body>
+
+</html>
